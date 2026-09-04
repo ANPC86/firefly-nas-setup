@@ -40,7 +40,6 @@
     ["10-withdrawals", "/transactions/withdrawal"],
     ["11-transfers", "/transactions/transfer"],
     ["12-rules", "/rules"],
-    ["13-reports", "/reports"],
-    ["14-profile", "/profile"]
+    ["13-reports", "/reports/default/<comma-separated asset account ids>/currentMonthStart/currentMonthEnd"]
   ]
 }

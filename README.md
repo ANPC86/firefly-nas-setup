@@ -171,7 +171,7 @@ The captures below come from a **demo user on the reference install, seeded with
 | [Asset accounts](docs/screenshots/02-asset-accounts.png) — bank, card, clearing, gift-card wallet, broker mirrors, by role | [Subscriptions](docs/screenshots/07-subscriptions.png) — 17 expectations in 7 groups, with bands, next match and per-group monthly cost |
 | [Liabilities](docs/screenshots/03-liabilities.png) — mortgage, two HELOCs, sales tax collected, income tax payable | [Categories](docs/screenshots/08-categories.png) and [Tags](docs/screenshots/09-tags.png) |
 | [Expense payees](docs/screenshots/04-expense-accounts.png) and [Revenue payees](docs/screenshots/05-revenue-accounts.png) | [Withdrawals](docs/screenshots/10-withdrawals.png) — both HELOC interest legs, the marketplace clearing itemisation, the gift-card spend | 
-| [Transfers](docs/screenshots/11-transfers.png) — card payment, clearing and wallet loads | [Reports](docs/screenshots/13-reports.png), [Rules](docs/screenshots/12-rules.png), [Profile](docs/screenshots/14-profile.png) |
+| [Transfers](docs/screenshots/11-transfers.png) — card payment, clearing and wallet loads | [Default financial report](docs/screenshots/13-reports.png) for the month — balances, income vs expenses, budgets, categories; and [Rules](docs/screenshots/12-rules.png) |
 
 Seed your own demo user the same way (a second Firefly user, its own Personal Access Token; the script refuses a user that already has transactions):
 
