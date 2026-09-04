@@ -188,6 +188,10 @@ for (const [name, ...paths] of pages) {
       const resp = await page.goto(`${base}${path}`, { waitUntil: 'load', timeout: 60000 });
       if (!resp || resp.status() >= 400) { console.log(`skip ${name} ${path} -> HTTP ${resp ? resp.status() : '?'}`); continue; }
       await page.waitForTimeout(settle);
+      // Firefly shows an intro tour (intro.js) the first time a page is visited; dismiss it so it
+      // does not sit over the capture. Firefly remembers the dismissal per page.
+      const skip = page.locator('.introjs-skipbutton');
+      if (await skip.count()) { await skip.first().click().catch(() => {}); await page.waitForTimeout(500); }
       const changed = await page.evaluate(sanitizeInPage, { literal, regexes, amountFactor });
       const hits = await page.evaluate(residualInPage, { literal });
       if (hits.length) {

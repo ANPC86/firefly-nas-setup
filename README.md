@@ -163,7 +163,22 @@ FF_URL=https://firefly.example.lan FF_EMAIL=you@example.com FF_PASSWORD_CMD="pas
 PLAYWRIGHT_MODULE=/path/to/node_modules/playwright/index.mjs node tools/screenshots.mjs
 ```
 
-Pages: dashboard, asset accounts, liabilities, expense and revenue payees, budgets, subscriptions, categories, tags, withdrawals, transfers, rules, reports, profile. Output lands in [`docs/screenshots/`](docs/screenshots/).
+The captures below come from a **demo user on the reference install, seeded with the synthetic fixture** by [`tools/seed_demo.py`](tools/seed_demo.py) (accounts, categories, budgets with limits, subscriptions in groups, and the fixture's month replicated into the current and previous month). Every figure is invented; the only rewrites the tool had to make were the demo login's email and the LAN hostname.
+
+| | |
+|---|---|
+| [Dashboard](docs/screenshots/01-dashboard.png) — net worth, per-account activity, budgets, categories, expense and revenue payees | [Budgets](docs/screenshots/06-budgets.png) — 11 monthly `reset` envelopes and 3 annual `rollover` envelopes, with spent and left per day |
+| [Asset accounts](docs/screenshots/02-asset-accounts.png) — bank, card, clearing, gift-card wallet, broker mirrors, by role | [Subscriptions](docs/screenshots/07-subscriptions.png) — 17 expectations in 7 groups, with bands, next match and per-group monthly cost |
+| [Liabilities](docs/screenshots/03-liabilities.png) — mortgage, two HELOCs, sales tax collected, income tax payable | [Categories](docs/screenshots/08-categories.png) and [Tags](docs/screenshots/09-tags.png) |
+| [Expense payees](docs/screenshots/04-expense-accounts.png) and [Revenue payees](docs/screenshots/05-revenue-accounts.png) | [Withdrawals](docs/screenshots/10-withdrawals.png) — both HELOC interest legs, the marketplace clearing itemisation, the gift-card spend | 
+| [Transfers](docs/screenshots/11-transfers.png) — card payment, clearing and wallet loads | [Reports](docs/screenshots/13-reports.png), [Rules](docs/screenshots/12-rules.png), [Profile](docs/screenshots/14-profile.png) |
+
+Seed your own demo user the same way (a second Firefly user, its own Personal Access Token; the script refuses a user that already has transactions):
+
+```bash
+FF_URL=https://firefly.example.lan FF_DEMO_PAT=<demo user's token> python tools/seed_demo.py --months 2 --dry-run
+FF_URL=https://firefly.example.lan FF_DEMO_PAT=<demo user's token> python tools/seed_demo.py --months 2
+```
 
 ---
 
@@ -189,7 +204,8 @@ docs/itemisation.md                    rideshare trips and marketplace orders: e
 fixtures/                              a synthetic month of transactions + Data Importer config
 agent/                                 gathering + import procedures: Claude Code skills/agent, generic system prompt
 tools/screenshots.mjs                  Playwright tour that sanitizes the DOM before every capture
-docs/screenshots/                      the tour
+tools/seed_demo.py                     seeds a demo Firefly user with the fixture through the REST API
+docs/screenshots/                      the tour, captured from the seeded demo user
 ```
 
 License: MIT for the code in this repository. Firefly III is AGPL-3.0; nothing from it is vendored here.
