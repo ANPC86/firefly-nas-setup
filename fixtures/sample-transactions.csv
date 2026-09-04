@@ -1,0 +1,31 @@
+date,description,amount,type,owning_account,opposing_account,category,tags,notes
+2026-08-01,Contract invoice INV-2026-08 paid,6300.00,deposit,Traditional Bank – Savings,Contract Client,Consulting Income,"2026,t4a,sample-202608",source=sample.csv#row-1
+2026-08-01,Sales tax collected on INV-2026-08,-300.00,withdrawal,Sales Tax Collected,Tax Authority – Sales Tax Collected,GST Collected,"2026,GST,Tax 2026,sample-202608",source=sample.csv#row-2 (collected on invoice; liability moves negative = owed)
+2026-08-01,Rent received – unit 4,1850.00,deposit,Traditional Bank – Joint Chequing,Tenant – Rental,Rental Income,"2026,t776,Rental,sample-202608",source=sample.csv#row-3
+2026-08-02,Condo fees – August,-560.00,withdrawal,Traditional Bank – Joint Chequing,Condo Corporation,Condo Fees,"2026,t776,Rental,fixed,sample-202608",source=sample.csv#row-4
+2026-08-03,Property tax instalment – rental,-225.00,withdrawal,Traditional Bank – Joint Chequing,Municipality – Property Tax,Property Tax  -  Rental,"2026,t776,Rental,fixed,sample-202608",source=sample.csv#row-5
+2026-08-05,Mortgage payment,-1420.00,withdrawal,Traditional Bank – Savings,Primary Residence Mortgage,Mortgage - Primary Residence,"2026,Primary Residence,fixed,sample-202608",source=sample.csv#row-6 (principal+interest as one leg; split lives in lender schedule)
+2026-08-06,Utility – primary residence,-186.40,withdrawal,Traditional Bank – Savings,Utility – Primary Residence,Utilities - Primary Residence,"2026,Primary Residence,fixed,sample-202608",source=sample.csv#row-7
+2026-08-06,Utility – rental,-94.10,withdrawal,Traditional Bank – Joint Chequing,Utility – Rental,Utilities - Rental,"2026,t776,Rental,fixed,sample-202608",source=sample.csv#row-8
+2026-08-08,Grocer,-142.87,withdrawal,Traditional Bank Visa,Grocer,Groceries & Food,"2026,personal,variable,sample-202608",source=sample.csv#row-9
+2026-08-09,Meal kit weekly box,-82.93,withdrawal,Traditional Bank Visa,Meal Kit,Groceries & Food,"2026,personal,subscription,fixed,sample-202608",source=sample.csv#row-10
+2026-08-10,Marketplace order 702-4471 (card line),-213.55,withdrawal,Traditional Bank Visa,Marketplace Clearing,Balance Sheet Transfer,"2026,sample-202608",source=sample.csv#row-11 (card line parked in clearing until itemised)
+2026-08-10,Marketplace order 702-4471 item: USB-C dock,-149.99,withdrawal,Marketplace Clearing,Marketplace,IT Equipment & Hardware,"2026,t4a,home-office,accountant-review,sample-202608",source=sample.csv#row-12
+2026-08-10,Marketplace order 702-4471 item: kitchen scale,-38.56,withdrawal,Marketplace Clearing,Marketplace,Household Goods,"2026,personal,variable,sample-202608",source=sample.csv#row-13
+2026-08-10,Marketplace order 702-4471 item: paperback,-25.00,withdrawal,Marketplace Clearing,Marketplace,Education,"2026,personal,t1,sample-202608",source=sample.csv#row-14
+2026-08-11,Gift card load – coffee chain (card line),-50.00,withdrawal,Traditional Bank Visa,Gift Card Balance – Coffee Chain,Balance Sheet Transfer,"2026,sample-202608",source=sample.csv#row-15 (load; the spend is booked from the wallet)
+2026-08-12,Coffee – client meeting,-11.40,withdrawal,Gift Card Balance – Coffee Chain,Coffee Chain,Business Meals & Entertainment,"2026,t4a,business-travel,accountant-review,sample-202608",source=sample.csv#row-16 (receipt held)
+2026-08-13,Rideshare to client site,-23.80,withdrawal,Traditional Bank Visa,Rideshare,Travel - Business,"2026,t4a,business-travel,sample-202608",source=sample.csv#row-17
+2026-08-14,Transit fare,-3.80,withdrawal,Traditional Bank Visa,Municipality – Transit,Transportation,"2026,personal,variable,sample-202608",source=sample.csv#row-18
+2026-08-15,HELOC interest – rental (charged to the line),-331.25,withdrawal,Rental Property HELOC,Traditional Bank – HELOC Interest,Loan Interest - Rental,"2026,t776,Rental,heloc,sample-202608",source=sample.csv#row-19 (accrual leg: liability → interest expense)
+2026-08-15,HELOC interest – rental (paid from chequing),-331.25,withdrawal,Traditional Bank – Joint Chequing,Rental Property HELOC,Balance Sheet Transfer,"2026,t776,Rental,heloc,heloc-payment,sample-202608",source=sample.csv#row-20 (settlement leg: bank → liability; NOT a duplicate of row-19)
+2026-08-16,Dinner out,-64.20,withdrawal,Traditional Bank Visa,Restaurant,Dining Out,"2026,personal,variable,sample-202608",source=sample.csv#row-21
+2026-08-18,Pharmacy,-27.15,withdrawal,Traditional Bank Visa,Pharmacy,Health Care - Personal,"2026,personal,variable,t1,sample-202608",source=sample.csv#row-22
+2026-08-19,Streaming – video platform,-13.99,withdrawal,Traditional Bank Visa,Streaming – Video,Entertainment,"2026,personal,subscription,fixed,sample-202608",source=sample.csv#row-23
+2026-08-20,Card cashback credited,18.42,deposit,Traditional Bank Visa,Card Cashback,Rewards Income,"2026,personal,sample-202608",source=sample.csv#row-24 (cashback is income from a revenue account)
+2026-08-21,Monthly account fee,-4.00,withdrawal,Traditional Bank – Savings,Traditional Bank – Fees,Bank Fees,"2026,personal,fixed,sample-202608",source=sample.csv#row-25
+2026-08-22,Interest earned,3.17,deposit,Traditional Bank – Savings,Interest – Traditional Bank,Interest Income,"2026,sample-202608",source=sample.csv#row-26
+2026-08-25,Payment to credit card,-900.00,transfer,Traditional Bank – Savings,Traditional Bank Visa,CC Payment,"2026,sample-202608",source=sample.csv#row-27
+2026-08-26,Parents' phone bill,-62.50,withdrawal,Traditional Bank – Savings,Telecom – Parents,Family Support,"2026,personal,fixed,sample-202608",source=sample.csv#row-28
+2026-08-28,Hardware store – rental repair,-88.60,withdrawal,Traditional Bank – Joint Chequing,Hardware Store,Maintenance - Rental,"2026,t776,Rental,rental-maintenance,sample-202608",source=sample.csv#row-29
+2026-08-30,Grocer,-96.44,withdrawal,Traditional Bank Visa,Grocer,Groceries & Food,"2026,personal,variable,sample-202608",source=sample.csv#row-30

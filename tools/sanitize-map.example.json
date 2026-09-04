@@ -1,0 +1,46 @@
+{
+  "_comment": "Copy to tools/sanitize-map.json (gitignored) and fill in YOUR real strings on the left. Every left-hand value below is fictional. Replacements are applied longest-first, case-insensitively, to every text node, input value and title attribute on the page before the screenshot is taken. The residual check then fails the page if any left-hand string is still visible.",
+
+  "replace": {
+    "Springfield Savings & Loan": "Traditional Bank",
+    "SS&L": "Traditional Bank",
+    "Shelbyville Direct": "Online Bank",
+    "Capital City Securities": "Online Broker",
+    "Homer Simpson": "Homer Simpson",
+    "Evergreen Terrace": "Primary Residence",
+    "Springfield Heights Condo": "Rental Property",
+    "Kwik-E-Mart Franchise Holdings": "Contract Client",
+    "Ned Flanders": "Tenant",
+    "Moe's Tavern": "Restaurant"
+  },
+
+  "regex": [
+    ["\\b(Acct|Account)\\s*#?\\s*\\d[\\d\\- ]{5,}\\b", "Account ****"],
+    ["\\b\\d{4}[ -]\\d{4}[ -]\\d{4}[ -]\\d{4}\\b", "**** **** **** ****"],
+    ["\\b\\d{3}[ -]\\d{3}[ -]\\d{3}\\b", "*** *** ***"],
+    ["\\b[A-Z]\\d[A-Z] ?\\d[A-Z]\\d\\b", "A1A 1A1"]
+  ],
+
+  "names_file": ".local/pii-names.txt",
+
+  "amount_factor": 0.37,
+
+  "_amount_factor_note": "Every currency amount on the page is multiplied by this factor and re-formatted, so relative sizes hold but no real figure survives. Set to 1 to keep amounts. Balances shown in charts are scaled too because they are rendered as text; SVG axis labels are text nodes as well.",
+
+  "pages": [
+    ["01-dashboard", "/"],
+    ["02-asset-accounts", "/accounts/asset"],
+    ["03-liabilities", "/accounts/liabilities"],
+    ["04-expense-accounts", "/accounts/expense"],
+    ["05-revenue-accounts", "/accounts/revenue"],
+    ["06-budgets", "/budgets"],
+    ["07-subscriptions", "/subscriptions", "/bills"],
+    ["08-categories", "/categories"],
+    ["09-tags", "/tags"],
+    ["10-withdrawals", "/transactions/withdrawal"],
+    ["11-transfers", "/transactions/transfer"],
+    ["12-rules", "/rules"],
+    ["13-reports", "/reports"],
+    ["14-profile", "/profile"]
+  ]
+}

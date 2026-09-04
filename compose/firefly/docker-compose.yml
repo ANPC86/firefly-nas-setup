@@ -1,0 +1,174 @@
+# Firefly III on a NAS — core, MariaDB, the Data Importer (FIDI), the cron caller Firefly needs,
+# and an opt-in daily dump sidecar.
+#
+#   cp .env.example .env                       # fill in APP_KEY, DB_PASSWORD, STATIC_CRON_TOKEN
+#   docker compose up -d                       # core + db + importer + cron
+#   docker compose --profile backup up -d      # ...plus the dump sidecar
+#   curl -f http://localhost:8080/health       # "OK"
+#
+# Derived from upstream's docker/docker-compose.yml with pinned tags, a MariaDB LTS instead of
+# the example's, and the backup pattern that has been running on the reference NAS since 2026-03.
+# Tags are pinned on purpose: the importer's API expectations track the core version, and the MCP
+# server reads the API — move all three together, when you decide.
+name: firefly
+
+services:
+  app:
+    image: fireflyiii/core:version-6.6.6
+    container_name: firefly_iii_core
+    hostname: firefly-iii
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${FIREFLY_PORT:-8080}:8080"
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      LOG_CHANNEL: stack
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
+      TZ: ${TZ}
+    volumes:
+      - ./upload:/var/www/html/storage/upload
+    networks:
+      - firefly
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+      wud.tag.include: '^version-\d+\.\d+\.\d+$$'
+
+  db:
+    image: mariadb:11.4.13
+    container_name: firefly_iii_db
+    hostname: firefly-db
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"       # no root password anywhere; the app user is all you need
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+    volumes:
+      - ./db:/var/lib/mysql                     # put this on your fastest volume (NVMe if the NAS has one)
+    networks:
+      - firefly
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+      wud.tag.include: '^11\.4\.\d+$$'
+
+  # Firefly III Data Importer (FIDI). Needs a Personal Access Token from the core, which does not
+  # exist until you have logged in once — leave FIREFLY_III_ACCESS_TOKEN empty on the first `up`,
+  # create the token (Options → Profile → OAuth → Personal Access Tokens), then `docker compose up -d importer`.
+  importer:
+    image: fireflyiii/data-importer:version-2.3.4
+    container_name: firefly_iii_importer
+    hostname: firefly-importer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${IMPORTER_PORT:-8081}:8080"
+    environment:
+      FIREFLY_III_URL: http://app:8080          # container-to-container; the browser never uses this
+      VANITY_URL: ${APP_URL}                    # what links in the importer UI point the browser at
+      FIREFLY_III_ACCESS_TOKEN: ${FIREFLY_III_ACCESS_TOKEN}
+      TRUSTED_PROXIES: "**"
+      TZ: ${TZ}
+    networks:
+      - firefly
+    depends_on:
+      app:
+        condition: service_healthy
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+      wud.tag.include: '^version-\d+\.\d+\.\d+$$'
+
+  # Firefly does nothing on a schedule by itself. Recurring transactions, auto-budgets, bill
+  # warnings and webhooks all run only when something calls the cron endpoint once a day.
+  # Without this, auto-budget limits are silently never created. (Upstream ships the same sidecar.)
+  cron:
+    image: alpine:3.24.1
+    container_name: firefly_iii_cron
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+    command: >
+      sh -c "echo '0 3 * * * wget -qO- http://app:8080/api/v1/cron/${STATIC_CRON_TOKEN}' | crontab -
+      && crond -f -L /dev/stdout"
+    networks:
+      - firefly
+    depends_on:
+      app:
+        condition: service_healthy
+
+  # Daily logical dump with N-day retention. Opt in with --profile backup. Restore:
+  #   gunzip -c backups/daily/firefly-<stamp>.sql.gz | docker exec -i firefly_iii_db mariadb -u $DB_USERNAME -p"$DB_PASSWORD" $DB_DATABASE
+  backup:
+    image: alpine:3.24.1
+    container_name: firefly_iii_backup
+    hostname: firefly-backup
+    restart: unless-stopped
+    profiles: ["backup"]
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+    volumes:
+      - ./backups:/backups:rw                   # point this at a different disk than ./db
+    networks:
+      - firefly
+    entrypoint: |
+      /bin/sh -c '
+        apk add --no-cache dcron mariadb-client > /dev/null 2>&1
+        cat > /backup.sh << "EOF"
+      #!/bin/sh
+      TIMESTAMP=$$(date +%Y%m%d-%H%M%S)
+      DEST=/backups/daily
+      mkdir -p $$DEST
+      mariadb-dump -h db -u $$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE | gzip > $$DEST/firefly-$$TIMESTAMP.sql.gz
+      ln -sf firefly-$$TIMESTAMP.sql.gz $$DEST/firefly-latest.sql.gz
+      find $$DEST -name "*.sql.gz" -mtime +$$BACKUP_KEEP_DAYS -delete
+      echo "[firefly-backup] $$TIMESTAMP complete"
+      EOF
+        chmod +x /backup.sh
+        echo "30 2 * * * /backup.sh >> /var/log/firefly-backup.log 2>&1" | crontab -
+        /backup.sh
+        crond -f -l 8
+      '
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+
+networks:
+  firefly:
+    name: firefly_net                           # the MCP stack joins this network by name
+    driver: bridge

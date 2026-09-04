@@ -1,0 +1,17 @@
+.env
+*.private.*
+.local/
+__pycache__/
+.venv/
+*.pyc
+.pytest_cache/
+node_modules/
+compose/firefly/db/
+compose/firefly/upload/
+compose/firefly/backups/
+tools/out/
+pii-names.txt
+sanitize-map.json
+*.sanitized.md
+*.redaction-report.json
+*.mapping.json

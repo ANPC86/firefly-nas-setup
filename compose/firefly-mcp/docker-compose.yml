@@ -1,0 +1,41 @@
+# daften/fireflyiii-mcp — an MCP server in front of one Firefly III instance, served over HTTP.
+#
+#   cp .env.example .env            # Firefly URL, a Personal Access Token, read-only flag
+#   docker compose up -d
+#   curl -f http://localhost:8490/health
+#
+# It joins the Firefly stack's network so FIREFLY_URL can be the core container's name. The
+# server represents whoever's Personal Access Token it holds; Firefly is single-tenant per user,
+# so one server per Firefly user you want an assistant to see.
+#
+# The image publishes :latest and :nightly only. Pin by digest once you have a working one:
+#   docker inspect --format '{{index .RepoDigests 0}}' ghcr.io/daften/fireflyiii-mcp:latest
+# and put that ghcr.io/daften/fireflyiii-mcp@sha256:... string in place of the tag below.
+name: firefly-mcp
+
+services:
+  fireflyiii-mcp:
+    image: ghcr.io/daften/fireflyiii-mcp:latest
+    container_name: fireflyiii-mcp
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    ports:
+      - "8490:3000"
+    networks:
+      - firefly_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    labels:
+      com.centurylinklabs.watchtower.enable: "false"
+
+networks:
+  # Created by compose/firefly (network name "firefly_net").
+  firefly_net:
+    external: true
