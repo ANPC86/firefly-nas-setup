@@ -116,7 +116,7 @@ The assistant works from the sanitized text: it prepares import rows, drafts act
 ## Test
 
 ```bash
-python -m pytest sanitize/test_sanitize_pdf.py -q
+python -m pytest sanitize/ -q
 ```
 
-The test builds a PDF stuffed with synthetic identifiers, including the cases that were once missed (a Luhn-invalid card number, a name inside an email local part, an IBAN partially eaten by the card rule, a short listed name eating part of an ordinary word, a listed birth date surviving because dates are protected), and asserts none of them survive. All identifiers in the test are invented.
+The test builds a PDF stuffed with synthetic identifiers, including the cases that were once missed (a Luhn-invalid card number, a name inside an email local part, an IBAN partially eaten by the card rule, a short listed name eating part of an ordinary word, a listed birth date surviving because dates are protected), and asserts none of them survive. `test_sanitize_pdf_rules.py` adds rule-level cases: a mailing address printed in capitals, a lower-case postal code, and an amount without thousands separators that `--strict` must not report as a leftover identifier. All identifiers in the tests are invented.
