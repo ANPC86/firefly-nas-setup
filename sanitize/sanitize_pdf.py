@@ -144,6 +144,18 @@ def _digits(s: str) -> str:
     return re.sub(r"\D", "", s)
 
 
+# Street-type words in title case and in capitals, since statements commonly
+# print the mailing address in capitals. Deliberately not
+# case-insensitive: lower-case "3 way split" or "4 close calls" is ordinary
+# text, not an address.
+_STREET_TYPES = "|".join(
+    form
+    for word in ("Street", "St", "Avenue", "Ave", "Road", "Rd", "Drive", "Dr", "Boulevard", "Blvd",
+                 "Crescent", "Cres", "Way", "Court", "Ct", "Place", "Pl", "Lane", "Ln", "Trail",
+                 "Terrace", "Terr", "Gate", "Green", "Grove", "Bay", "Close", "Link", "Row")
+    for form in (word, word.upper()))
+
+
 def build_detectors(min_digits: int) -> list[Detector]:
     return [
         # Email runs before the names pass: a personal name inside a local part
@@ -175,8 +187,10 @@ def build_detectors(min_digits: int) -> list[Detector]:
                  lambda s: len(_digits(s)) == 9 and _luhn(_digits(s))),
         Detector("phone", "PHONE",
                  re.compile(r"(?<![\d])(?:\+?1[ .-]?)?\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4}(?![\d])")),
+        # Case-insensitive: e-transfer and form fields print the code in lower
+        # case ("t4n 5e1"), and a miss here is a leak.
         Detector("postal_code", "POSTAL",
-                 re.compile(r"\b[A-Z]\d[A-Z][ -]?\d[A-Z]\d\b")),
+                 re.compile(r"\b[A-Z]\d[A-Z][ -]?\d[A-Z]\d\b", re.I)),
         # Catch-all for anything account-shaped the specific rules missed.
         # Runs last; protected amounts and dates are already out of scope.
         Detector("long_digits", "NUM",
@@ -184,8 +198,7 @@ def build_detectors(min_digits: int) -> list[Detector]:
         Detector("street_address", "ADDR",
                  re.compile(
                      r"\b\d{1,6}[A-Za-z]?\s+(?:[A-Z][\w'-]*\s+){0,3}"
-                     r"(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Boulevard|Blvd|Crescent|Cres|"
-                     r"Way|Court|Ct|Place|Pl|Lane|Ln|Trail|Terrace|Terr|Gate|Green|Grove|Bay|Close|Link|Row)"
+                     rf"(?:{_STREET_TYPES})"
                      r"\.?(?:\s+(?:NW|NE|SW|SE|N|S|E|W))?\b"),
                  high_risk=False),
     ]
@@ -325,10 +338,17 @@ class Sanitizer:
     def residuals(self, text: str) -> dict[str, int]:
         """Re-scan OUTPUT. Anything found here escaped the first pass."""
         found: dict[str, int] = {}
+        # Hold amounts out of the scan exactly as scrub() parks them. Without
+        # this, an amount printed without thousands separators (1234567.89)
+        # matched the long-digit rule and failed every --strict run.
+        scan = text
+        for kind, pat in PROTECT:
+            if kind == "amount":
+                scan = pat.sub("\x00", scan)
         for det in self.detectors:
             if not det.high_risk:
                 continue
-            hits = [m.group(0) for m in det.pattern.finditer(text)
+            hits = [m.group(0) for m in det.pattern.finditer(scan)
                     if not (det.validate and not det.validate(m.group(0)))]
             hits = [h for h in hits if not re.fullmatch(r"\[[A-Z]+-[0-9a-f]{4}\]", h.strip())]
             if hits:
